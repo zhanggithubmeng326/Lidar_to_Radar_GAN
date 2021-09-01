@@ -84,12 +84,12 @@ class LocalEnhancer(tf.keras.Model):
         super(LocalEnhancer, self).__init__()
 
         # downsampling the high resolution images to low resolution images
-        self.downsample = layers.GlobalAveragePooling2D(3, strides=2, padding='same')
+        self.downsample = layers.AveragePooling2D(3, strides=2, padding='same')
 
         # initialize global generator without last 3 layers
         global_base_channels = base_channels * 2
         model_global = GlobalGenerator(channels_in, channels_out, global_base_channels,
-                                       global_fb_blocks, global_residual_blocks)
+                                       global_fb_blocks, global_residual_blocks).layers[0].layers
         model_global = model_global[:-3]                # why can we use List here???  type of model_global
         self.model_G1 = tf.keras.Sequential(model_global)
 
