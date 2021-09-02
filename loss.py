@@ -45,6 +45,6 @@ class NetworkLoss(tf.keras.Model):
         generator_loss = self.gan_loss(fake_outputs_g, True) + \
                          self.lambda_fm * self.feature_matching_loss(dis_real_outputs, dis_fake_outputs) # 0.1 or 10???
 
-        discriminator_loss = 0.5 * self.gan_loss(dis_real_outputs, True) + 0.5 * self.gan_loss(dis_fake_outputs, False)
+        discriminator_loss = self.gan_loss(dis_real_outputs, True) + self.gan_loss(dis_fake_outputs, False)
 
         return generator_loss, discriminator_loss, fake_img_stop
