@@ -28,20 +28,20 @@ class NetworkLoss(tf.keras.Model):
         for real_features, fake_features in zip(dis_real_outputs, dis_fake_outputs):
             for real_feature, fake_feature in zip(real_features, fake_features):
                 fm_loss += tf.reduce_mean(real_feature.tf.stop_gradient(), fake_feature)   # real_feature.stop_gradient ????
-
+        fm_loss = fm_loss / 3
         return fm_loss
 
     # compute generator loss and discriminator loss
     # def call(self, input_img, training=None, mask=None):     use call() or forward() ??????
-    def forward(self, input_img, input_img_scale, target_img, generator, discriminator):
+    def forward(self, input_img, target_img, generator, discriminator):
 
-        fake_img = generator(input_img, input_img_scale)                 # generator = Generator() in training part
+        fake_img = generator(input_img)                 # generator = Generator() in training part
         fake_img_stop = tf.stop_gradient(fake_img)
         target_img_stop = tf.stop_gradient(target_img)
         fake_outputs_g = discriminator(tf.concat(input_img, fake_img))
         dis_fake_outputs = discriminator(tf.concat(input_img, fake_img_stop, concat_dim=-1)) # fake_img.tf.stop_gradient??????
         dis_real_outputs = discriminator(tf.concat(input_img, target_img_stop, concat_dim=-1))  # target_img.tf.stop_gradient??????
-        
+
         generator_loss = self.gan_loss(fake_outputs_g, True) + \
                          self.lambda_fm * self.feature_matching_loss(dis_real_outputs, dis_fake_outputs) # 0.1 or 10???
 
