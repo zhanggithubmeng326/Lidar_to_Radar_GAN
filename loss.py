@@ -45,4 +45,4 @@ def network_loss(input_img, target_img, generator, discriminator):
     generator_loss = loss_gan_g + lambda_fm * loss_fm    #0.1 or 10???
     discriminator_loss = generative_loss(dis_real_outputs, True) * 0.5 + generative_loss(dis_fake_outputs, False) * 0.5
 
-    return generator_loss, discriminator_loss, loss_fm, loss_gan_g, fake_img,
+    return generator_loss, discriminator_loss, loss_fm, loss_gan_g
