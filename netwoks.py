@@ -79,7 +79,7 @@ class GlobalGenerator(tf.keras.Model):
 # build a local enhancer for higher resolution images
 class LocalEnhancer(tf.keras.Model):
 
-    def __init__(self, channels_in, channels_out, base_channels=32,
+    def __init__(self, channels_in=3, channels_out=3, base_channels=32,
                  global_fb_blocks=3, global_residual_blocks=9, local_residual_blocks=3):
         super(LocalEnhancer, self).__init__()
 
@@ -181,7 +181,7 @@ class Discriminator(tf.keras.Model):
 # build a multi-scale discriminator for three different image resolutions
 class MultiscaleDiscriminator(tf.keras.Model):
 
-    def __init__(self, input_nc, base_channels=64, n_discrimintors=3, ):
+    def __init__(self, input_nc=3, base_channels=64, n_discrimintors=3):
         super(MultiscaleDiscriminator, self).__init__()
 
         # initialize all three discriminators
