@@ -39,7 +39,10 @@ def network_loss(input_img, target_img, generator, discriminator):
     dis_fake_outputs = discriminator(tf.concat(input_img, fake_img_stop, concat_dim=-1)) # fake_img.tf.stop_gradient??????
     dis_real_outputs = discriminator(tf.concat(input_img, target_img_stop, concat_dim=-1))  # target_img.tf.stop_gradient??????
 
-    generator_loss = generative_loss(fake_outputs_g, True) + lambda_fm * feature_matching_loss(dis_real_outputs, dis_fake_outputs) # 0.1 or 10???
-    discriminator_loss = generative_loss(dis_real_outputs, True) + generative_loss(dis_fake_outputs, False)
+    loss_fm = feature_matching_loss(dis_real_outputs, dis_fake_outputs)
+    loss_gan_g = generative_loss(fake_outputs_g, True)
 
-    return generator_loss, discriminator_loss, fake_img
+    generator_loss = loss_gan_g + lambda_fm * loss_fm    #0.1 or 10???
+    discriminator_loss = generative_loss(dis_real_outputs, True) * 0.5 + generative_loss(dis_fake_outputs, False) * 0.5
+
+    return generator_loss, discriminator_loss, loss_fm, loss_gan_g, fake_img,
