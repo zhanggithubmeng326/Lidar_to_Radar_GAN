@@ -1,5 +1,22 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import yaml
+import argparse
+
+
+# create argparse
+def get_args_parser():
+    parser = argparse.ArgumentParser(description='model training')
+    parser.add_argument('--config', type=str, default='config.yaml', help='config file path')
+    return parser
+
+
+# read config file which contains hyperparameter settings, returns configuration as dictionary
+def get_config(config_file='config.yaml'):
+
+    with open(config_file, 'r') as f:
+        config = yaml.safe_load(f)
+    return config
 
 
 class lr_decay(tf.keras.optimizers.schedules.LearningRateSchedule):

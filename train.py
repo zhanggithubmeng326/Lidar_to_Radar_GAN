@@ -1,11 +1,12 @@
 import netwoks
 import loss
 import tensorflow as tf
-from utils import lr_decay
+import utils
 import os
 import time
 import datetime
-from utils import generate_image
+import argparse
+
 
 
 # instantiate generator and discriminator
@@ -13,8 +14,8 @@ Generator = netwoks.LocalEnhancer()
 Discriminator = netwoks.MultiscaleDiscriminator()
 
 # define scheduler for scheduling learning rate
-lr_scheduler_g = lr_decay(args.initial_learning_rate, args.epoch, args.epoch_decay)
-lr_scheduler_d = lr_decay(args.initial_learning_rate, args.epoch, args.epoch_decay)
+lr_scheduler_g = utils.lr_decay(args.initial_learning_rate, args.epoch, args.epoch_decay)
+lr_scheduler_d = utils.lr_decay(args.initial_learning_rate, args.epoch, args.epoch_decay)
 
 # define optimizer of generator and discriminator
 optimizer_g = tf.keras.optimizers.Adam(learning_rate=lr_scheduler_g, beta_1=arg.beta1, beta_2=0.999)
@@ -105,11 +106,21 @@ def train(train_data, test_data, epochs):
 
         # evaluate the trained generator
         if epoch == 199:
-            generate_image(Generator, test_input, target_image, epoch)
+            utils.generate_image(Generator, test_input, target_image, epoch)
 
 
 if __name__ == '__main__':
-    EPOCHS = 200
+    args_parser = utils.get_args_parser()
+    args = args_parser.parse_args()
+
+    # ensure reproducibility
+    #tf.random.set_seed(666)
+
+    # parse configuration parameters
+    config = utils.get_config(args.config)
+    EPOCHS = config['epoch']
+    EPOCH_DECAY = config['epoch_decay']
+
     train(ds_train, ds_test, EPOCHS)
 
 

@@ -1,0 +1,5 @@
+initial_learning_rate: 0.01
+epoch: 200
+epoch_decay: 150
+beta_1: 0.5  # for optimizer Adam
+batch_size: 1
