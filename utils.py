@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import tensorflow as tf
 
 
@@ -18,3 +19,20 @@ class lr_decay(tf.keras.optimizers.schedules.LearningRateSchedule):
             false_fn=lambda: self.initial_learning_rate
         ))
         return self.current_learning_rate
+
+
+def generate_image(model, test_image, target, epoch):
+    prediction = model(test_image, training=True)
+
+    plt.figure(figsize=(30, 30))
+    display_list = [test_image[0], target[0], prediction[0]]
+    title = ['input image', 'ground truth', 'predicted image']
+
+    for i in range(3):
+        plt.subplot(1, 3, i+1)
+        plt.title(title[i])
+        plt.imshow(display_list[i] * 0.5 + 0.5)
+        plt.axis('off')
+
+    plt.savefig('image_at_epoch_{}.png'.format(epoch + 1))
+    plt.show()
