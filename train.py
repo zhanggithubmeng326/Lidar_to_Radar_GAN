@@ -5,46 +5,7 @@ import utils
 import os
 import time
 import datetime
-import argparse
-
-
-
-# instantiate generator and discriminator
-Generator = netwoks.LocalEnhancer()
-Discriminator = netwoks.MultiscaleDiscriminator()
-
-# define scheduler for scheduling learning rate
-lr_scheduler_g = utils.lr_decay(args.initial_learning_rate, args.epoch, args.epoch_decay)
-lr_scheduler_d = utils.lr_decay(args.initial_learning_rate, args.epoch, args.epoch_decay)
-
-# define optimizer of generator and discriminator
-optimizer_g = tf.keras.optimizers.Adam(learning_rate=lr_scheduler_g, beta_1=arg.beta1, beta_2=0.999)
-optimizer_d = tf.keras.optimizers.Adam(learning_rate=lr_scheduler_d, beta_1=arg.beta1, beta_2=0.999)
-
-# define a checkpoint-saver
-checkpoint_dir = './training_checkpoints_L2R_V2'
-if not os.path.exists(checkpoint_dir):
-    os.makedirs(checkpoint_dir)
-
-checkpoint = tf.train.Checkpoint(generator=Generator, discriminator=Discriminator,
-                                 generator_optimizer=optimizer_g,
-                                 discriminator_optimizer=optimizer_d)
-checkpoint_manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, checkpoint_name='L2R_ckpt')
-checkpoint_prefix = os.path.join(checkpoint_dir, 'L2R_ckpt')
-
-# create s summary writer for logging the losses
-log_dir = 'logs_v2/'
-if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
-current_time = datetime.datetime.now().strftime('%Y%M%D-%H%M%S')
-writer_path = log_dir + 'train/' + current_time
-summary_writer = tf.summary.create_file_writer(writer_path)
-
-# define metrics to accumulate loss and calculate mean value
-train_loss_generator = tf.keras.metrics.Mean('generator_loss', dtype=tf.float32)
-train_loss_feature_matching = tf.keras.metrics.Mean('feature_matching_loss', dtype=tf.float32)
-train_loss_gan_g = tf.keras.metrics.Mean('gan_loss_g', dtype=tf.float32)
-train_loss_discriminator = tf.keras.metrics.Mean('discriminator_loss', dtype=tf.float32)
+from dataset import dataloader
 
 
 # define the training loop
@@ -76,7 +37,6 @@ def train(train_data, test_data, epochs):
         start = time.time()
 
         for input_image, target in train_data:
-            # start training
             train_step(input_image, target)
 
             # log loss
@@ -108,7 +68,6 @@ def train(train_data, test_data, epochs):
         if epoch == 199:
             utils.generate_image(Generator, test_input, target_image, epoch)
 
-
 if __name__ == '__main__':
     args_parser = utils.get_args_parser()
     args = args_parser.parse_args()
@@ -116,12 +75,61 @@ if __name__ == '__main__':
     # ensure reproducibility
     #tf.random.set_seed(666)
 
-    # parse configuration parameters
+    # get the dictionary of configuration parameters
     config = utils.get_config(args.config)
+
+    IMAGE_PATH_LIDAR =['image_path_lidar']
+    IMAGE_PATH_RADAR = config['image_path_radar']
+    BATCH_SIZE = config['batch_size']
+    BUFFER_SIZE = config['buffer_size']
+    IMG_WIDTH = config['img_width']
+    IMG_HEIGHT = config['img_height']
     EPOCHS = config['epoch']
     EPOCH_DECAY = config['epoch_decay']
+    INITIAL_LEARNING_RATE = config['initial_learning_rate']
+    BETA_1 = config['beta_1']
 
-    train(ds_train, ds_test, EPOCHS)
+    # instantiate generator and discriminator
+    Generator = netwoks.LocalEnhancer()
+    Discriminator = netwoks.MultiscaleDiscriminator()
+
+    # define scheduler for scheduling learning rate
+    lr_scheduler_g = utils.lr_decay(INITIAL_LEARNING_RATE, args.epoch, args.epoch_decay)
+    lr_scheduler_d = utils.lr_decay(args.initial_learning_rate, args.epoch, args.epoch_decay)
+
+    # define optimizer of generator and discriminator
+    optimizer_g = tf.keras.optimizers.Adam(learning_rate=lr_scheduler_g, beta_1= BETA_1, beta_2=0.999)
+    optimizer_d = tf.keras.optimizers.Adam(learning_rate=lr_scheduler_d, beta_1= BETA_1, beta_2=0.999)
+
+    # define a checkpoint-saver
+    checkpoint_dir = './training_checkpoints_L2R_V2'
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
+
+    checkpoint = tf.train.Checkpoint(generator=Generator, discriminator=Discriminator,
+                                     generator_optimizer=optimizer_g,
+                                     discriminator_optimizer=optimizer_d)
+    checkpoint_manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, checkpoint_name='L2R_ckpt')
+    checkpoint_prefix = os.path.join(checkpoint_dir, 'L2R_ckpt')
+
+    # create s summary writer for logging the losses
+    log_dir = 'logs_v2/'
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    current_time = datetime.datetime.now().strftime('%Y%M%D-%H%M%S')
+    writer_path = log_dir + 'train/' + current_time
+    summary_writer = tf.summary.create_file_writer(writer_path)
+
+    # define metrics to accumulate loss and calculate mean value
+    train_loss_generator = tf.keras.metrics.Mean('generator_loss', dtype=tf.float32)
+    train_loss_feature_matching = tf.keras.metrics.Mean('feature_matching_loss', dtype=tf.float32)
+    train_loss_gan_g = tf.keras.metrics.Mean('gan_loss_g', dtype=tf.float32)
+    train_loss_discriminator = tf.keras.metrics.Mean('discriminator_loss', dtype=tf.float32)
+
+
+    # start training
+    DS_TRAIN, DS_TEST = dataloader(IMAGE_PATH_LIDAR, IMAGE_PATH_RADAR, BATCH_SIZE, BUFFER_SIZE)
+    train(DS_TRAIN, DS_TEST, EPOCHS)
 
 
 

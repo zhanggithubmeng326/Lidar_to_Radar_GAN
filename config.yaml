@@ -1,5 +1,10 @@
+image_path_lidar: '/home/mzhang/dataset_L2R_V2/img_lidar'
+image_path_radar: '/home/mzhang/dataset_L2R_V2/img_radar'
+img_width: 800
+img_height: 800
+batch_size: 1
+buffer_size: 1608
 initial_learning_rate: 0.01
 epoch: 200
-epoch_decay: 150
+epoch_decay: 150  # for learning_rate_scheduler
 beta_1: 0.5  # for optimizer Adam
-batch_size: 1
