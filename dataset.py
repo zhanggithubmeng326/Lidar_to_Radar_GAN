@@ -21,7 +21,7 @@ def dataloader(image_path_lidar, image_path_radar, batch_size, buffer_size):
     all_radar_path = glob.glob(os.path.join(image_path_radar, '*.png'))
 
     # split data into training and test set
-    num_data = len(all_lidar_path)
+    # num_data = len(all_lidar_path)
     train_lidar_path = all_lidar_path[:1608]
     test_lidar_path = all_lidar_path[1608:]
 
@@ -33,12 +33,12 @@ def dataloader(image_path_lidar, image_path_radar, batch_size, buffer_size):
     path_ds_lidar_test = tf.data.Dataset.from_tensor_slices(test_lidar_path)
     path_ds_radar_train = tf.data.Dataset.from_tensor_slices(train_radar_path)
     path_ds_radar_test = tf.data.Dataset.from_tensor_slices(test_radar_path)
-    
-    AUTOTUNE = tf.data.experimental.AUTOTUNE
-    ds_lidar_train = path_ds_lidar_train.map(load_and_preprocess, num_parallel_calls=AUTOTUNE)
-    ds_lidar_test = path_ds_lidar_test.map(load_and_preprocess, num_parallel_calls=AUTOTUNE)
-    ds_radar_train = path_ds_radar_train.map(load_and_preprocess, num_parallel_calls=AUTOTUNE)
-    ds_radar_test = path_ds_radar_test.map(load_and_preprocess, num_parallel_calls=AUTOTUNE)
+
+    auto_tune = tf.data.experimental.AUTOTUNE
+    ds_lidar_train = path_ds_lidar_train.map(load_and_preprocess, num_parallel_calls=auto_tune)
+    ds_lidar_test = path_ds_lidar_test.map(load_and_preprocess, num_parallel_calls=auto_tune)
+    ds_radar_train = path_ds_radar_train.map(load_and_preprocess, num_parallel_calls=auto_tune)
+    ds_radar_test = path_ds_radar_test.map(load_and_preprocess, num_parallel_calls=auto_tune)
 
     # build paired data of lidar and radar
     ds_lidar_radar_train = tf.data.Dataset.zip((ds_lidar_train, ds_radar_train))
