@@ -32,7 +32,7 @@ class ResidualBlock(layers.Layer):
 # build global generator for lower resolution
 class GlobalGenerator(tf.keras.Model):
 
-    def __init__(self, input_nc=3, output_nc, base_channels=64, n_layers=3, residual_blocks=9):
+    def __init__(self, input_nc=3, output_nc=3, base_channels=64, n_layers=3, residual_blocks=9):
         super(GlobalGenerator, self).__init__()
         self.output_nc = output_nc
 
