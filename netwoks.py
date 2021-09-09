@@ -68,8 +68,8 @@ class GlobalGenerator(tf.keras.Model):
             channels = channels // 2
         # last layer for output
         model.add(layers.ZeroPadding2D(3))
-        model.add(layers.Conv2D(output_nc, kernel_size=7, kernel_initializer=kernel_initializer))
-        model.add(tf.keras.activations.tanh())
+        model.add(layers.Conv2D(output_nc, kernel_size=7, kernel_initializer=kernel_initializer, activation='tanh'))
+        # model.add(tf.keras.activations.tanh())
         
         self.model = model
 
