@@ -125,7 +125,7 @@ class LocalEnhancer(tf.keras.Model):
         # convolution for output
         model_upsampling.add(layers.ZeroPadding2D(3))
         model_upsampling.add(layers.Conv2D(channels_out, kernel_size=7, kernel_initializer=kernel_initializer))
-        model_upsampling.add(tf.keras.activations.tanh())
+        #model_upsampling.add(tf.keras.activations.tanh())
         self.model_upsampling = model_upsampling
 
     def call(self, x, training=None, mask=None):         # does forward work here???
