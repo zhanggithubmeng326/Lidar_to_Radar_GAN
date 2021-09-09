@@ -13,7 +13,7 @@ class ResidualBlock(layers.Layer):
         model = tf.keras.Sequential()
         model.add(layers.ZeroPadding2D(1))
         model.add(layers.Conv2D(channels_out, kernel_size=3, kernel_initializer= kernel_initializer))
-        model.add(tfa.layers.InstanceNormalization(axis=2, center=False, scale=False))
+        model.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
 
         model.add(layers.ReLU())
 
