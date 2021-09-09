@@ -34,7 +34,7 @@ class GlobalGenerator(tf.keras.Model):
 
     def __init__(self, input_nc=3, output_nc=3, base_channels=64, n_layers=3, residual_blocks=9):
         super(GlobalGenerator, self).__init__()
-        self.output_nc = output_nc
+        # self.output_nc = output_nc
 
         model = tf.keras.Sequential()
         model.add(layers.InputLayer([None, None, input_nc]))
@@ -44,6 +44,7 @@ class GlobalGenerator(tf.keras.Model):
         model.add(layers.ReLU())
 
         channels = base_channels
+
         # frontend blocks for downsampling
         for _ in range(n_layers):
 
@@ -64,16 +65,17 @@ class GlobalGenerator(tf.keras.Model):
                                              output_padding=1, kernel_initializer=kernel_initializer))
             model.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
             model.add(layers.ReLU())
-            channels = channels / 2
+            channels = channels // 2
         # last layer for output
         model.add(layers.ZeroPadding2D(3))
-        model.add(layers.Conv2D(self.output_nc, kernel_size=7, kernel_initializer=kernel_initializer))
+        model.add(layers.Conv2D(output_nc, kernel_size=7, kernel_initializer=kernel_initializer))
         model.add(tf.keras.activations.tanh())
         
         self.model = model
 
-    def call(self, x, training=None, mask=None):       # training=???
+    def call(self, x, training=True, mask=None):
         output = self.model(x)
+
         return output
 
 
