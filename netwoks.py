@@ -12,13 +12,13 @@ class ResidualBlock(layers.Layer):
 
         model = tf.keras.Sequential()
         model.add(layers.ZeroPadding2D(1))
-        model.add(layers.Conv2D(channels_out, kernel_size=3, kernel_initializer= kernel_initializer))
+        model.add(layers.Conv2D(filters=channels_out, kernel_size=3, kernel_initializer= kernel_initializer))
         model.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
 
         model.add(layers.ReLU())
 
         model.add(layers.ZeroPadding2D(1))
-        model.add(layers.Conv2D(channels_out, kernel_size=3, kernel_initializer=kernel_initializer))
+        model.add(layers.Conv2D(filters=channels_out, kernel_size=3, kernel_initializer=kernel_initializer))
         model.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))   # check the value of the axis
 
         self.model = model
@@ -39,7 +39,7 @@ class GlobalGenerator(tf.keras.Model):
         model_1 = tf.keras.Sequential(name='model_1')
         model_1.add(layers.InputLayer([800, 800, input_nc]))
         model_1.add(layers.ZeroPadding2D(3))
-        model_1.add(layers.Conv2D(base_channels, kernel_size=7, kernel_initializer=kernel_initializer))
+        model_1.add(layers.Conv2D(filters=base_channels, kernel_size=7, kernel_initializer=kernel_initializer))
         model_1.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
         model_1.add(layers.ReLU())
 
@@ -48,7 +48,7 @@ class GlobalGenerator(tf.keras.Model):
         # frontend blocks for downsampling
         for _ in range(n_layers):
 
-            model_1.add(layers.Conv2D(channels * 2, kernel_size=3, strides=2,
+            model_1.add(layers.Conv2D(filters=channels * 2, kernel_size=3, strides=2,
                                     padding='same', kernel_initializer=kernel_initializer))
             model_1.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
             model_1.add(layers.ReLU())
@@ -61,7 +61,7 @@ class GlobalGenerator(tf.keras.Model):
 
         # backend blocks for transposed convolution
         for _ in range(n_layers):
-            model_1.add(layers.Conv2DTranspose(channels/2, kernel_size=3, strides=2, padding='same',
+            model_1.add(layers.Conv2DTranspose(filters=channels/2, kernel_size=3, strides=2, padding='same',
                                              output_padding=1, kernel_initializer=kernel_initializer))
             model_1.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
             model_1.add(layers.ReLU())
@@ -73,7 +73,7 @@ class GlobalGenerator(tf.keras.Model):
         model_2 = tf.keras.Sequential(name='model_2')
         #model_2.add(layers.InputLayer([None, None, channels]))  # channels=???
         model_2.add(layers.ZeroPadding2D(3))
-        model_2.add(layers.Conv2D(output_nc, kernel_size=7, kernel_initializer=kernel_initializer))
+        model_2.add(layers.Conv2D(filters=output_nc, kernel_size=7, kernel_initializer=kernel_initializer))
         model_2.add(tf.keras.activations.tanh())
         
         self.model_2 = model_2
@@ -107,11 +107,11 @@ class LocalEnhancer(tf.keras.Model):
         model_downsampling = tf.keras.Sequential(name='model_downsampling')
 
         model_downsampling.add(layers.ZeroPadding2D(3))
-        model_downsampling.add(layers.Conv2D(base_channels, kernel_size=7, kernel_initializer=kernel_initializer))
+        model_downsampling.add(layers.Conv2D(filters=base_channels, kernel_size=7, kernel_initializer=kernel_initializer))
         model_downsampling.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
         model_downsampling.add(layers.ReLU())
 
-        model_downsampling.add(layers.Conv2D(base_channels * 2, kernel_size=3, strides=2, padding='same',
+        model_downsampling.add(layers.Conv2D(filters=base_channels * 2, kernel_size=3, strides=2, padding='same',
                                kernel_initializer=kernel_initializer))
         model_downsampling.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
         model_downsampling.add(layers.ReLU())
@@ -124,14 +124,14 @@ class LocalEnhancer(tf.keras.Model):
             model_upsampling.add(ResidualBlock(channels_out=base_channels * 2))
 
         # upsampling
-        model_upsampling.add(layers.Conv2DTranspose(base_channels, kernel_size=3, strides=2, padding='same',
+        model_upsampling.add(layers.Conv2DTranspose(filters=base_channels, kernel_size=3, strides=2, padding='same',
                                                     kernel_initializer=kernel_initializer))
         model_upsampling.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
         model_upsampling.add(layers.ReLU())
 
         # convolution for output
         model_upsampling.add(layers.ZeroPadding2D(3))
-        model_upsampling.add(layers.Conv2D(channels_out, kernel_size=7, kernel_initializer=kernel_initializer))
+        model_upsampling.add(layers.Conv2D(filters=channels_out, kernel_size=7, kernel_initializer=kernel_initializer))
         model_upsampling.add(tf.keras.activations.tanh())
         self.model_upsampling = model_upsampling
 
@@ -152,30 +152,30 @@ class Discriminator(tf.keras.Model):
         self.model_list = []
 
         layer1 = [layers.InputLayer([None, None, input_nc]),
-                  layers.Conv2D(base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
+                  layers.Conv2D(filters=base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
                   layers.LeakyReLU(0.2)]
         model_1 = tf.keras.Sequential(layer1)
         self.model_list.append(model_1)
 
         # downsampling convolutional layer
-        layer2 = [layers.Conv2D(2 * base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
+        layer2 = [layers.Conv2D(filters=2 * base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
                   tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False),
                   layers.LeakyReLU(0.2)]
         model_2 = tf.keras.Sequential(layer2)
         self.model_list.append(model_2)
 
         # downsampling convolutional layer
-        layer3 = [layers.Conv2D(4 * base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
+        layer3 = [layers.Conv2D(filters=4 * base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
                   tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False),
                   layers.LeakyReLU(0.2)]
         model_3 = tf.keras.Sequential(layer3)
         self.model_list.append(model_3)
 
         # output convolutional layer
-        layer4 = [layers.Conv2D(8 * base_channels, kernel_size=4, strides=1, padding='same', kernel_initializer=kernel_initializer),
+        layer4 = [layers.Conv2D(filters=8 * base_channels, kernel_size=4, strides=1, padding='same', kernel_initializer=kernel_initializer),
                   tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False),
                   layers.LeakyReLU(0.2),
-                  layers.Conv2D(1, kernel_size=4, strides=1, padding='same', kernel_initializer=kernel_initializer)]
+                  layers.Conv2D(filters=1, kernel_size=4, strides=1, padding='same', kernel_initializer=kernel_initializer)]
         model_4 = tf.keras.Sequential(layer4)
         self.model_list.append(model_4)
 
@@ -193,7 +193,7 @@ class Discriminator(tf.keras.Model):
 # build a multi-scale discriminator for three different image resolutions
 class MultiscaleDiscriminator(tf.keras.Model):
 
-    def __init__(self, input_nc=3, n_discrimintors=3):
+    def __init__(self, input_nc=6, n_discrimintors=3):
         super(MultiscaleDiscriminator, self).__init__()
 
         # initialize all three discriminators
