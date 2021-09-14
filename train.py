@@ -78,7 +78,7 @@ if __name__ == '__main__':
     # get the dictionary of configuration parameters
     config = utils.get_config(args.config)
 
-    IMAGE_PATH_LIDAR =['image_path_lidar']
+    IMAGE_PATH_LIDAR = config['image_path_lidar']
     IMAGE_PATH_RADAR = config['image_path_radar']
     BATCH_SIZE = config['batch_size']
     BUFFER_SIZE = config['buffer_size']
@@ -94,8 +94,8 @@ if __name__ == '__main__':
     Discriminator = netwoks.MultiscaleDiscriminator()
 
     # define scheduler for scheduling learning rate
-    lr_scheduler_g = utils.lr_decay(INITIAL_LEARNING_RATE, args.epoch, args.epoch_decay)
-    lr_scheduler_d = utils.lr_decay(args.initial_learning_rate, args.epoch, args.epoch_decay)
+    lr_scheduler_g = utils.lr_decay(INITIAL_LEARNING_RATE, EPOCHS, EPOCH_DECAY)
+    lr_scheduler_d = utils.lr_decay(INITIAL_LEARNING_RATE, EPOCHS, EPOCH_DECAY)
 
     # define optimizer of generator and discriminator
     optimizer_g = tf.keras.optimizers.Adam(learning_rate=lr_scheduler_g, beta_1= BETA_1, beta_2=0.999)
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     checkpoint = tf.train.Checkpoint(generator=Generator, discriminator=Discriminator,
                                      generator_optimizer=optimizer_g,
                                      discriminator_optimizer=optimizer_d)
-    checkpoint_manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, checkpoint_name='L2R_ckpt')
+    checkpoint_manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, checkpoint_name='L2R_ckpt', max_to_keep=5)
     checkpoint_prefix = os.path.join(checkpoint_dir, 'L2R_ckpt')
 
     # create s summary writer for logging the losses
