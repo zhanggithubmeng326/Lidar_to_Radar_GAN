@@ -37,7 +37,7 @@ class GlobalGenerator(tf.keras.Model):
         # self.output_nc = output_nc
 
         model_1 = tf.keras.Sequential(name='model_1')
-        model_1.add(layers.InputLayer([None, None, input_nc]))
+        model_1.add(layers.InputLayer([800, 800, input_nc]))
         model_1.add(layers.ZeroPadding2D(3))
         model_1.add(layers.Conv2D(base_channels, kernel_size=7, kernel_initializer=kernel_initializer))
         model_1.add(tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False))
@@ -74,7 +74,7 @@ class GlobalGenerator(tf.keras.Model):
         #model_2.add(layers.InputLayer([None, None, channels]))  # channels=???
         model_2.add(layers.ZeroPadding2D(3))
         model_2.add(layers.Conv2D(output_nc, kernel_size=7, kernel_initializer=kernel_initializer))
-        model_2.add(tf.keras.activations.tanh())
+        model_2.add(tf.keras.activations.tanh(name='output'))
         
         self.model_2 = model_2
 
@@ -142,50 +142,49 @@ class LocalEnhancer(tf.keras.Model):
 
         return output
 
+
 # build a PatchGAN discriminator, which can be used by different scales
 class Discriminator(tf.keras.Model):
 
     def __init__(self, input_nc, base_channels=64):
         super(Discriminator, self).__init__()
 
-        model_dis = tf.keras.Sequential(name='model_discriminator')
-
-        # initial convolution layer
-        # self.model_global = model_global
+        self.model_list = []
 
         layer1 = [layers.InputLayer([None, None, input_nc]),
                   layers.Conv2D(base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
                   layers.LeakyReLU(0.2)]
-        model_dis.add(layer1)       # or model_dis.add(*layer1)???
+        model_1 = tf.keras.Sequential(layer1)
+        self.model_list.append(model_1)
 
         # downsampling convolutional layer
         layer2 = [layers.Conv2D(2 * base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
                   tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False),
                   layers.LeakyReLU(0.2)]
-        model_dis.add(layer2)
+        model_2 = tf.keras.Sequential(layer2)
+        self.model_list.append(model_2)
 
         # downsampling convolutional layer
         layer3 = [layers.Conv2D(4 * base_channels, kernel_size=4, strides=2, padding='same', kernel_initializer=kernel_initializer),
                   tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False),
                   layers.LeakyReLU(0.2)]
-        model_dis.add(layer3)
+        model_3 = tf.keras.Sequential(layer3)
+        self.model_list.append(model_3)
 
         # output convolutional layer
         layer4 = [layers.Conv2D(8 * base_channels, kernel_size=4, strides=1, padding='same', kernel_initializer=kernel_initializer),
                   tfa.layers.InstanceNormalization(axis=-1, center=False, scale=False),
                   layers.LeakyReLU(0.2),
                   layers.Conv2D(1, kernel_size=4, strides=1, padding='same', kernel_initializer=kernel_initializer)]
-        model_dis.add(layer4)
+        model_4 = tf.keras.Sequential(layer4)
+        self.model_list.append(model_4)
 
-        self.model_dis = model_dis
+        #for i in range(len(self.model_list)):
+            #setattr(self, 'layer'+str(i+1), self.model_list[i])
 
-        for i in range(len(model_dis.layers)):
-            setattr(self, 'layer'+str(i), model_dis.layers[i])
-
-    def call(self, x, training=True, mask=None):      # training = ????
+    def call(self, x, training=True, mask=None):      # training = True ????
         layer_results = []
-        for j in range(len(self.model_dis.layers)):
-            layer = getattr(self, 'layer'+str(j))
+        for layer in self.model_list:
             x = layer(x)
             layer_results.append(x)
 
@@ -194,23 +193,23 @@ class Discriminator(tf.keras.Model):
 # build a multi-scale discriminator for three different image resolutions
 class MultiscaleDiscriminator(tf.keras.Model):
 
-    def __init__(self, input_nc=3, base_channels=64, n_discrimintors=3):
+    def __init__(self, input_nc=3, n_discrimintors=3):
         super(MultiscaleDiscriminator, self).__init__()
 
         # initialize all three discriminators
         self.list_discriminator = []
         for dis in range(n_discrimintors):
-            self.list_discriminator.append(Discriminator(input_nc, base_channels))  # instantiation???
+            self.list_discriminator.append(Discriminator(input_nc))  # instantiation???
 
         self.downsample = layers.AveragePooling2D(3, strides=2, padding='same')
 
-    def call(self, x, training=True, mask=None):            # training = ???
+    def call(self, inputs, training=True, mask=None):            # training = ???
         results = []
 
         for n, discriminator in enumerate(self.list_discriminator):
             if n != 0:
-                x = self.downsample(x)
+                inputs = self.downsample(inputs)
 
-            results.append(discriminator(x))  # list which contains multi-scale discriminator outputs
+            results.append(discriminator(inputs))  # list which contains multi-scale discriminator outputs
 
         return results
