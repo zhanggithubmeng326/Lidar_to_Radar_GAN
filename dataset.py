@@ -5,11 +5,16 @@ import os
 
 # given the image path and return the paired images (lidar,radar)
 def dataloader(image_path_lidar, image_path_radar, batch_size, buffer_size):
+    #def random_crop(input):
+        #image = tf.image.random_crop(input, size=[700, 700, 3])
+        #return image
 
     def load_and_preprocess(image_path):
         image = tf.io.read_file(image_path)                  # read image as uint(0~255) tensor
         image = tf.image.decode_png(image)                   # decode image to [h,w,c]
         image = tf.cast(image, tf.float32)                   # convert images to float32 tensor
+
+        #image = random_crop(image)
         if tf.random.uniform(()) > 0.5:                      # random flip
             image = tf.image.flip_left_right(image)
         image = (image / 127.5) - 1                           # normalize image to [-1,1]
