@@ -3,11 +3,11 @@ import tensorflow as tf
 
 def network_loss(input_img, target_img, generator, discriminator):
 
-    lambda_fm = 10
+    lambda_fm = 10.0
     loss_object = tf.losses.BinaryCrossentropy(from_logits=True)
 
     # define basic gan loss
-    def generative_loss( discriminator_preds, real_image):   # real_image = True ???
+    def generative_loss(discriminator_preds, real_image):   # real_image = True ???
         gan_loss = 0.0
 
         for preds in discriminator_preds:
@@ -33,14 +33,14 @@ def network_loss(input_img, target_img, generator, discriminator):
     # compute generator loss and discriminator loss
 
     fake_img = generator(input_img, training=True)               # training=True???
-    fake_img_stop = tf.stop_gradient(fake_img)
-    target_img_stop = tf.stop_gradient(target_img)
-    fake_outputs_g = discriminator(tf.concat(input_img, fake_img), dtype=tf.float32)     # do we need dtype=tf.float32 here?
-    dis_fake_outputs = discriminator(tf.concat(input_img, fake_img_stop, concat_dim=-1)) # fake_img.tf.stop_gradient??????
-    dis_real_outputs = discriminator(tf.concat(input_img, target_img_stop, concat_dim=-1))  # target_img.tf.stop_gradient??????
+    # fake_img_stop = tf.stop_gradient(fake_img)                   ???
+    # target_img_stop = tf.stop_gradient(target_img)               ???
+    fake_outputs_g = discriminator(tf.concat([input_img, fake_img], -1))     # do we need dtype=tf.float32 here?
+    dis_fake_outputs = discriminator(tf.concat([input_img, fake_img], -1))    # fake_img.tf.stop_gradient??????
+    dis_real_outputs = discriminator(tf.concat([input_img, target_img], -1))  # target_img.tf.stop_gradient??????
 
     loss_fm = feature_matching_loss(dis_real_outputs, dis_fake_outputs)
-    loss_gan_g = generative_loss(fake_outputs_g, True)
+    loss_gan_g = generative_loss(fake_outputs_g, False)
 
     generator_loss = loss_gan_g + lambda_fm * loss_fm    #0.1 or 10???
     discriminator_loss = generative_loss(dis_real_outputs, True) * 0.5 + generative_loss(dis_fake_outputs, False) * 0.5
