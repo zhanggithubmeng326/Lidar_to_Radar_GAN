@@ -59,5 +59,5 @@ def dataloader(image_path_lidar, image_path_radar, batch_size, buffer_size):
 
 if __name__ == '__main__':
     img_train, img_test = dataloader(image_path_lidar, image_path_radar, batch_size=1, buffer_size=1608)
-    print(img_train.output_shapes)
+    print(img_train)
     print(img_test)
