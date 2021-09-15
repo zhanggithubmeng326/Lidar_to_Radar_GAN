@@ -39,7 +39,7 @@ class lr_decay(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 
 def generate_image(model, test_image, target, epoch):
-    prediction = model(test_image, training=True)
+    prediction = model(test_image, training=False)
 
     plt.figure(figsize=(30, 30))
     display_list = [test_image[0], target[0], prediction[0]]

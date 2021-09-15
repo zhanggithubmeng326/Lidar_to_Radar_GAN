@@ -92,6 +92,7 @@ class LocalEnhancer(tf.keras.Model):
                  global_fb_blocks=3, global_residual_blocks=9, local_residual_blocks=3):
         super(LocalEnhancer, self).__init__()
 
+        self.conv_for_downsampling = layers.Conv2D(filters=3, kernel_size=7, padding='same', kernel_initializer=kernel_initializer)
         # downsampling the high resolution images to low resolution images
         self.downsample = layers.AveragePooling2D(3, strides=2, padding='same')
 
@@ -136,7 +137,8 @@ class LocalEnhancer(tf.keras.Model):
         self.model_upsampling = model_upsampling
 
     def call(self, x, training=None, mask=None):         # does forward work here???
-        downsampled_input = self.downsample(x)
+        conv_input = self.conv_for_downsampling(x)
+        downsampled_input = self.downsample(conv_input)
         input_after_GG = self.model_global(downsampled_input)
         output = self.model_upsampling(input_after_GG + self.model_downsampling(x))
 

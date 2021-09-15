@@ -32,7 +32,7 @@ def network_loss(input_img, target_img, generator, discriminator):
 
     # compute generator loss and discriminator loss
 
-    fake_img = generator(input_img, training=True)
+    fake_img = generator(input_img, training=True)               # training=True???
     fake_img_stop = tf.stop_gradient(fake_img)
     target_img_stop = tf.stop_gradient(target_img)
     fake_outputs_g = discriminator(tf.concat(input_img, fake_img), dtype=tf.float32)     # do we need dtype=tf.float32 here?
