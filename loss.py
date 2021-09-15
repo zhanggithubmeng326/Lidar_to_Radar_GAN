@@ -26,17 +26,18 @@ def network_loss(input_img, target_img, generator, discriminator):
         fm_loss = 0.0
         for real_features, fake_features in zip(dis_real_outputs, dis_fake_outputs):
             for real_feature, fake_feature in zip(real_features, fake_features):
-                fm_loss = tf.keras.losses.MeanAbsoluteError(real_feature.tf.stop_gradient(), fake_feature)   # real_feature.stop_gradient ????
+                real_feature_stop = tf.stop_gradient(real_feature)
+                fm_loss = tf.keras.losses.MeanAbsoluteError(real_feature_stop, fake_feature)   # real_feature.stop_gradient ????
         fm_loss = fm_loss / 3
         return fm_loss
 
     # compute generator loss and discriminator loss
 
     fake_img = generator(input_img, training=True)               # training=True???
-    # fake_img_stop = tf.stop_gradient(fake_img)                   ???
+    fake_img_stop = tf.stop_gradient(fake_img)                   #???
     # target_img_stop = tf.stop_gradient(target_img)               ???
     fake_outputs_g = discriminator(tf.concat([input_img, fake_img], -1))     # do we need dtype=tf.float32 here?
-    dis_fake_outputs = discriminator(tf.concat([input_img, fake_img], -1))    # fake_img.tf.stop_gradient??????
+    dis_fake_outputs = discriminator(tf.concat([input_img, fake_img_stop], -1))    # fake_img.tf.stop_gradient??????
     dis_real_outputs = discriminator(tf.concat([input_img, target_img], -1))  # target_img.tf.stop_gradient??????
 
     loss_fm = feature_matching_loss(dis_real_outputs, dis_fake_outputs)
