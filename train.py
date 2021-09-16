@@ -9,7 +9,7 @@ from dataset import dataloader
 
 
 # define the training loop
-@tf.function
+@tf.function     # convert to graph execution
 def train_step(input_image, target_image):
 
     # get the loss of generator and discriminator
